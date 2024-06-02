@@ -18,7 +18,7 @@
     
     &nbsp&nbsp&nbsp&nbsp
     <input type="submit" name="submit" class="submit" />
-	<p id="statusMessage" style="color: red; font-size: 16px;"></p>
+	<p id="statusMessage" style="color: red; font-size: 16px; margin-left: 55px;"></p>
   </form>
   <br />
   <table cellspacing="20px">
@@ -62,37 +62,55 @@
   //webkitSpeechRecognition api for speech to text conversion
   function record() {
     var recognition = new webkitSpeechRecognition();
-    recognition.lang = "en-IN";
+    recognition.lang = "hi-IN";  // Set language to Hindi for recognition
 
-    // Update status message to indicate recording has started
     document.getElementById("statusMessage").innerHTML = "Voice input began...";
 
     recognition.onresult = function(event) {
-      console.log(event);
-      document.getElementById("speechToText").value =
-        event.results[0][0].transcript;
-      // Clear status message when speech is recognized
-      document.getElementById("statusMessage").innerHTML = "";
+        var hindiText = event.results[0][0].transcript;  // Captured Hindi text
+        console.log("Recognized Hindi Text:", hindiText);
+        translateText(hindiText);  // Call the translation function
     };
 
     recognition.onerror = function(event) {
-      // Update message in case of an error
-      document.getElementById("statusMessage").innerHTML =
-        "Error occurred in recognition: " + event.error;
+        document.getElementById("statusMessage").innerHTML = "Error occurred in recognition: " + event.error;
     };
 
     recognition.onend = function() {
-      // Update message when recording ends
-      if (document.getElementById("speechToText").value === "") {
-        document.getElementById("statusMessage").innerHTML =
-          "No speech was detected, try again.";
-      } else {
-        document.getElementById("statusMessage").innerHTML = "";
-      }
+        if (document.getElementById("speechToText").value === "") {
+            document.getElementById("statusMessage").innerHTML = "No speech was detected, try again.";
+        } else {
+            document.getElementById("statusMessage").innerHTML = "Translation complete.";  // Update to show translation is done
+        }
     };
 
     recognition.start();
-  }
+}
+
+
+function translateText(hindiText) {
+    fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            q: hindiText,
+            source: 'hi',
+            target: 'en',
+            format: 'text'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("speechToText").value = data.translatedText;
+        document.getElementById("statusMessage").innerHTML = "Translation complete.";
+    })
+    .catch(error => {
+        console.error('Error translating text:', error);
+        document.getElementById("statusMessage").innerHTML = "Translation failed.";
+    });
+}
 
   function play() {
     var videoSource = new Array();
