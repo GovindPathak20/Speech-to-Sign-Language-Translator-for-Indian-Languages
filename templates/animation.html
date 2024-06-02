@@ -1,189 +1,173 @@
 {% extends 'base.html' %} {% load static %} {% block content %}
 <div class="split left">
-  <h2 align="center">Enter Text or Use Mic</h2>
-  <br />
-  <form action="" method="post" align="left">
-    {% csrf_token %}
-    <input
-      type="text"
-      name="sen"
-      class="mytext"
-      id="speechToText"
-      placeholder=""
-    />
-    <button type="button" name="button" class="mic" onclick="record()">
-      <img src="{% static 'mic3.png' %}" height="32px" width="38px" />
-    </button>
-	
-    
-    &nbsp&nbsp&nbsp&nbsp
-    <input type="submit" name="submit" class="submit" />
-	<p id="statusMessage" style="color: red; font-size: 16px; margin-left: 55px;"></p>
-  </form>
-  <br />
-  <table cellspacing="20px">
-    <tr>
-      <td class="td">The text that you entered is:</td>
-      <td class="td">{{ text }}</td>
-    </tr>
-    <tr>
-      <td class="td">Key words in sentence:</td>
-      <td class="td">
-        <ul class="td" id="list" align="center">
-          {% for word in words %}
-          <li id="{{ i }}" style="margin-right: 8px">{{ word }}</li>
-          {% endfor %}
-        </ul>
-      </td>
-    </tr>
-  </table>
+	<h2 align="center">Enter Text or Use Mic</h2>
+	<br />
+	<form action="" method="post" align="left" autocomplete="off">
+		{% csrf_token %}
+		<input type="text" name="sen" class="mytext" id="speechToText" placeholder=""
+			style="border-top-left-radius: 15px; border-bottom-left-radius: 15px;" />
+		<button type="button" name="button" class="mic" style="
+	border-left: none; 
+	border-top-right-radius: 15px;
+	border-bottom-right-radius: 15px;
+	" onclick="record()">
+			<img src="{% static 'mic.png' %}" height="42px" width="38px" />
+		</button>
+
+
+		&nbsp&nbsp&nbsp&nbsp
+		<input type="submit" name="submit" class="submit" />
+		<p id="statusMessage" style="color: #2193b0; font-size: 16px; margin-left: 55px;"></p>
+	</form>
+	<br />
+	<table cellspacing="20px">
+		<tr>
+			<td class="td">The text that you entered is:</td>
+			<td class="td" style="color:#000">{{ text }}</td>
+		</tr>
+		<tr>
+			<td class="td">Key words in sentence:</td>
+			<td class="td">
+				<ul class="td" style="list-style-type: none;" id="list" align="center">
+					{% for word in words %}
+					<li id="{{ i }}" style="margin-right: 8px; display: inline;">{{ word }}</li>
+					{% endfor %}
+				</ul>
+			</td>
+		</tr>
+	</table>
 </div>
 <div class="split right">
-  <h2 align="center">Sign Language Animation</h2>
+	<h2 align="center">Sign Language Animation</h2>
 
-  <div style="text-align:center">
-    &nbsp&nbsp
-    <button class="submit" onclick="playPause()">Play/Pause</button>
+	<div style="text-align:center">
+		&nbsp&nbsp
+		<button class="submit" onclick="playPause()">Play/Pause</button>
 
-    <!--  LETS USE ONLY PLAY PAUSE BUTTON WITH 720 *420 ,IT FITS THE SCREEN ASHISH
+		<!--  LETS USE ONLY PLAY PAUSE BUTTON WITH 720 *420 ,IT FITS THE SCREEN ASHISH
 
   	<button onclick="makeBig()">Big</button>
   	<button onclick="makeSmall()">Small</button>
   	<button onclick="makeNormal()">Normal</button>-->
 
-    <video id="videoPlayer" width="600" height="350" preload="auto" autoplay>
-      <source src="" type="video/mp4" />
-      Your browser does not support HTML5 video.
-    </video>
-  </div>
+		<video id="videoPlayer" width="600" height="350" preload="auto" autoplay>
+			<source src="" type="video/mp4" />
+			Your browser does not support HTML5 video.
+		</video>
+	</div>
 </div>
 
 <script>
-  //webkitSpeechRecognition api for speech to text conversion
-  function record() {
-    var recognition = new webkitSpeechRecognition();
-    recognition.lang = "hi-IN";  // Set language to Hindi for recognition
+	//webkitSpeechRecognition api for speech to text conversion
+	function record() {
+		var recognition = new webkitSpeechRecognition();
+		recognition.lang = "hi-IN";  // Set language to Hindi for recognition
 
-    document.getElementById("statusMessage").innerHTML = "Voice input began...";
+		document.getElementById("statusMessage").innerHTML = "Voice input began...";
 
-    recognition.onresult = function(event) {
-        var hindiText = event.results[0][0].transcript;  // Captured Hindi text
-        console.log("Recognized Hindi Text:", hindiText);
-        translateText(hindiText);  // Call the translation function
-    };
+		recognition.onresult = function (event) {
+			var hindiText = event.results[0][0].transcript;  // Captured Hindi text
+			console.log("Recognized Hindi Text:", hindiText);
+			translateText(hindiText);  // Call the translation function
+		};
 
-    recognition.onerror = function(event) {
-        document.getElementById("statusMessage").innerHTML = "Error occurred in recognition: " + event.error;
-    };
+		recognition.onerror = function (event) {
+			document.getElementById("statusMessage").innerHTML = "Error occurred in recognition: " + event.error;
+		};
 
-    recognition.onend = function() {
-        if (document.getElementById("speechToText").value === "") {
-            document.getElementById("statusMessage").innerHTML = "No speech was detected, try again.";
-        } else {
-            document.getElementById("statusMessage").innerHTML = "Translation complete.";  // Update to show translation is done
-        }
-    };
+		recognition.onend = function () {
+			if (document.getElementById("speechToText").value === "") {
+				document.getElementById("statusMessage").innerHTML = "No speech was detected, try again.";
+			} else {
+				document.getElementById("statusMessage").innerHTML = "Translation complete.";  // Update to show translation is done
+			}
+		};
 
-    recognition.start();
-}
-
-
-function translateText(hindiText) {
-    fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            q: hindiText,
-            source: 'hi',
-            target: 'en',
-            format: 'text'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById("speechToText").value = data.translatedText;
-        document.getElementById("statusMessage").innerHTML = "Translation complete.";
-    })
-    .catch(error => {
-        console.error('Error translating text:', error);
-        document.getElementById("statusMessage").innerHTML = "Translation failed.";
-    });
-}
-
-  function play() {
-    var videoSource = new Array();
-    var videos = document.getElementById("list").getElementsByTagName("li");
-    var j;
-    for (j = 0; j < videos.length; j++) {
-      videoSource[j] = "/static/" + videos[j].innerHTML + ".mp4";
-    }
-
-    var i = 0; // define i
-    var videoCount = videoSource.length;
-
-    function videoPlay(videoNum) {
-      document.getElementById("list").getElementsByTagName("li")[
-        videoNum
-      ].style.color = "#09edc7";
-      document.getElementById("list").getElementsByTagName("li")[
-        videoNum
-      ].style.fontSize = "xx-large";
-      document
-        .getElementById("videoPlayer")
-        .setAttribute("src", videoSource[videoNum]);
-      document.getElementById("videoPlayer").load();
-      document.getElementById("videoPlayer").play();
-    }
-    document
-      .getElementById("videoPlayer")
-      .addEventListener("ended", myHandler, false);
-    document.getElementById("list").getElementsByTagName("li")[0].style.color =
-      "#09edc7";
-    document
-      .getElementById("list")
-      .getElementsByTagName("li")[0].style.fontSize = "xx-large";
-
-    videoPlay(0); // play the video
-
-    function myHandler() {
-      document.getElementById("list").getElementsByTagName("li")[
-        i
-      ].style.color = "#008080";
-      document.getElementById("list").getElementsByTagName("li")[
-        i
-      ].style.fontSize = "20px";
-      i++;
-      if (i == videoCount) {
-        document.getElementById("videoPlayer").pause();
-      } else {
-        videoPlay(i);
-      }
-    }
-  }
-  /* LETS USE ONLY PLAY PAUSE BUTTON WITH 720 *420 ,IT FITS THE SCREEN
-	function makeBig() {
-	    document.getElementById("videoPlayer").width = 560;
-		document.getElementById("videoPlayer").height = 360;
+		recognition.start();
 	}
 
-	function makeSmall() {
-	    document.getElementById("videoPlayer").width = 320;
-		document.getElementById("videoPlayer").height = 180;
+
+	function translateText(hindiText) {
+		fetch('https://libretranslate.de/translate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				q: hindiText,
+				source: 'hi',
+				target: 'en',
+				format: 'text'
+			})
+		})
+			.then(response => response.json())
+			.then(data => {
+				document.getElementById("speechToText").value = data.translatedText;
+				document.getElementById("statusMessage").innerHTML = "Translation complete.";
+			})
+			.catch(error => {
+				console.error('Error translating text:', error);
+				document.getElementById("statusMessage").innerHTML = "Translation failed.";
+			});
 	}
 
-	function makeNormal() {
-	    document.getElementById("videoPlayer").width = 420;
-		document.getElementById("videoPlayer").height =280;
-	}*/
-  function playPause() {
-    if (document.getElementById("videoPlayer").paused) {
-      play();
-    } else {
-      document.getElementById("videoPlayer").pause();
-    }
-  }
+	function play() {
+		var videoSource = new Array();
+		var videos = document.getElementById("list").getElementsByTagName("li");
+		var j;
+		for (j = 0; j < videos.length; j++) {
+			videoSource[j] = "/static/" + videos[j].innerHTML + ".mp4";
+		}
+
+		var i = 0; // define i
+		var videoCount = videoSource.length;
+
+		function videoPlay(videoNum) {
+			document.getElementById("list").getElementsByTagName("li")[
+				videoNum
+			].style.color = "#09edc7";
+			document.getElementById("list").getElementsByTagName("li")[
+				videoNum
+			].style.fontSize = "xx-large";
+			document
+				.getElementById("videoPlayer")
+				.setAttribute("src", videoSource[videoNum]);
+			document.getElementById("videoPlayer").load();
+			document.getElementById("videoPlayer").play();
+		}
+		document
+			.getElementById("videoPlayer")
+			.addEventListener("ended", myHandler, false);
+		document.getElementById("list").getElementsByTagName("li")[0].style.color =
+			"#09edc7";
+		document
+			.getElementById("list")
+			.getElementsByTagName("li")[0].style.fontSize = "xx-large";
+
+		videoPlay(0); // play the video
+
+		function myHandler() {
+			document.getElementById("list").getElementsByTagName("li")[
+				i
+			].style.color = "#008080";
+			document.getElementById("list").getElementsByTagName("li")[
+				i
+			].style.fontSize = "20px";
+			i++;
+			if (i == videoCount) {
+				document.getElementById("videoPlayer").pause();
+			} else {
+				videoPlay(i);
+			}
+		}
+	}
+	function playPause() {
+		if (document.getElementById("videoPlayer").paused) {
+			play();
+		} else {
+			document.getElementById("videoPlayer").pause();
+		}
+	}
 </script>
 
 {% endblock %}
